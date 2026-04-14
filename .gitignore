@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+*.egg-info/
+dist/
+build/
+
+# 환경 변수
+.env
+
+# 임시 저장 파일
+storage/uploads/
+storage/outputs/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store

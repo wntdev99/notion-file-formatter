@@ -1,0 +1,25 @@
+# Web Framework
+fastapi==0.115.0
+uvicorn[standard]==0.30.6
+
+# Async Task Queue
+celery==5.4.0
+redis==5.1.1
+
+# File Type Detection
+python-magic==0.4.27
+
+# Image Processing
+Pillow==10.4.0
+
+# PDF Processing
+pikepdf==9.2.0
+
+# Video Processing
+ffmpeg-python==0.2.0
+
+# Utilities
+python-multipart==0.0.12
+aiofiles==24.1.0
+pydantic==2.9.2
+pydantic-settings==2.5.2

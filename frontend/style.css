@@ -1,0 +1,118 @@
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: #f5f5f5;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.container {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+  width: 100%;
+  max-width: 560px;
+  padding: 40px 36px;
+}
+
+header { text-align: center; margin-bottom: 32px; }
+h1 { font-size: 1.6rem; font-weight: 700; color: #1a1a1a; }
+.subtitle { margin-top: 8px; font-size: 0.9rem; color: #666; line-height: 1.5; }
+
+/* 드롭존 */
+.drop-zone {
+  border: 2px dashed #d0d0d0;
+  border-radius: 12px;
+  padding: 48px 24px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+  position: relative;
+}
+.drop-zone:hover, .drop-zone.drag-over {
+  border-color: #4f46e5;
+  background: #f8f7ff;
+}
+.drop-icon { font-size: 2.4rem; color: #b0b0b0; margin-bottom: 12px; }
+.drop-text { font-size: 1rem; color: #333; font-weight: 500; }
+.drop-hint { margin-top: 8px; font-size: 0.78rem; color: #999; }
+#fileInput { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+
+/* 상태 섹션 */
+.status-section { display: flex; flex-direction: column; gap: 18px; }
+
+.file-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #f8f8f8;
+  border-radius: 8px;
+  padding: 12px 16px;
+}
+.file-name { font-size: 0.9rem; font-weight: 600; color: #222; word-break: break-all; }
+.file-size { font-size: 0.8rem; color: #888; white-space: nowrap; margin-left: 12px; }
+
+/* 진행 바 */
+.progress-bar-wrap {
+  background: #eee;
+  border-radius: 99px;
+  height: 8px;
+  overflow: hidden;
+}
+.progress-bar {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #4f46e5, #7c73f1);
+  border-radius: 99px;
+  transition: width 0.4s ease;
+}
+
+.status-message { font-size: 0.88rem; color: #555; text-align: center; }
+
+/* 사이즈 비교 */
+.size-comparison {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  background: #f8f8f8;
+  border-radius: 10px;
+  padding: 16px;
+}
+.size-box { text-align: center; }
+.size-label { display: block; font-size: 0.75rem; color: #999; margin-bottom: 4px; }
+.size-value { font-size: 1.1rem; font-weight: 700; color: #222; }
+.arrow { font-size: 1.4rem; color: #aaa; }
+
+/* 버튼 */
+.actions { display: flex; gap: 10px; }
+.btn {
+  flex: 1;
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+.btn:hover { opacity: 0.85; }
+.btn-download { background: #4f46e5; color: #fff; }
+.btn-reset { background: #f0f0f0; color: #444; }
+
+/* 에러 박스 */
+.error-box {
+  background: #fff5f5;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-size: 0.85rem;
+  color: #c0392b;
+  line-height: 1.5;
+}
+
+.hidden { display: none !important; }

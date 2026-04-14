@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Notion File Formatter</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Notion File Formatter</h1>
+      <p class="subtitle">PDF · 이미지 · 동영상을 Notion 업로드 가능한 5MB 이하로 변환합니다</p>
+    </header>
+
+    <!-- 업로드 영역 -->
+    <section class="upload-section" id="uploadSection">
+      <div class="drop-zone" id="dropZone">
+        <div class="drop-icon">&#8593;</div>
+        <p class="drop-text">파일을 드래그하거나 클릭해서 선택하세요</p>
+        <p class="drop-hint">PDF · JPG · PNG · GIF · WebP · MP4 · MOV · AVI · MKV</p>
+        <input type="file" id="fileInput"
+          accept=".pdf,.jpg,.jpeg,.png,.gif,.webp,.bmp,.tiff,.mp4,.mov,.avi,.mkv,.webm" />
+      </div>
+    </section>
+
+    <!-- 변환 상태 -->
+    <section class="status-section hidden" id="statusSection">
+      <div class="file-info">
+        <span class="file-name" id="fileName"></span>
+        <span class="file-size" id="fileSize"></span>
+      </div>
+
+      <div class="progress-bar-wrap">
+        <div class="progress-bar" id="progressBar"></div>
+      </div>
+      <p class="status-message" id="statusMessage">대기 중...</p>
+
+      <div class="result-info hidden" id="resultInfo">
+        <div class="size-comparison">
+          <div class="size-box">
+            <span class="size-label">원본</span>
+            <span class="size-value" id="originalSize">-</span>
+          </div>
+          <div class="arrow">&#8594;</div>
+          <div class="size-box">
+            <span class="size-label">변환 후</span>
+            <span class="size-value" id="convertedSize">-</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button class="btn btn-download hidden" id="downloadBtn">다운로드</button>
+        <button class="btn btn-reset" id="resetBtn">다른 파일 변환</button>
+      </div>
+
+      <div class="error-box hidden" id="errorBox"></div>
+    </section>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
