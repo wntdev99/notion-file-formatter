@@ -108,8 +108,19 @@ function setProgress(pct, msg) {
 }
 
 function showResult(data, jobId) {
+  const isSplit = data.message.includes("ZIP");
+  const convertedLabel = document.getElementById("convertedLabel");
+
   originalSizeEl.textContent = formatBytes(data.original_size);
   convertedSizeEl.textContent = formatBytes(data.converted_size);
+  convertedLabel.textContent = isSplit ? "파트당 최대" : "변환 후";
+
+  if (isSplit) {
+    downloadBtn.textContent = "ZIP 다운로드";
+  } else {
+    downloadBtn.textContent = "다운로드";
+  }
+
   resultInfo.classList.remove("hidden");
   downloadBtn.classList.remove("hidden");
   downloadBtn.onclick = () => { window.location.href = `${API}/api/download/${jobId}`; };

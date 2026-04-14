@@ -45,65 +45,77 @@ class PDFConverter(AbstractConverter):
                     attempts=attempts,
                 )
 
-        # 2단계: 최고 압축으로도 초과 → 페이지 분할 후 ZIP 반환
-        zip_path, num_parts, total_size = self._split_and_zip(
-            output_path, request.output_dir, stem, target
-        )
-        attempts += num_parts
+        # 2단계: 최고 압축으로도 초과 → 이진 분할로 모든 파트가 5MB 이하 보장
+        tmp_dir = request.output_dir / f"_split_{uuid.uuid4().hex[:8]}"
+        tmp_dir.mkdir(parents=True, exist_ok=True)
+
+        try:
+            parts, split_attempts = self._split_until_fit(output_path, tmp_dir, stem, target)
+            attempts += split_attempts
+
+            # 파트 번호 재정렬 후 ZIP 묶기
+            zip_path = request.output_dir / f"{stem}_{uuid.uuid4().hex[:8]}.zip"
+            max_part_size = 0
+            with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zf:
+                for i, part in enumerate(parts, start=1):
+                    part_name = f"{stem}_part{i:02d}.pdf"
+                    zf.write(part, part_name)
+                    max_part_size = max(max_part_size, part.stat().st_size)
+
+        finally:
+            shutil.rmtree(tmp_dir, ignore_errors=True)
 
         return ConversionResult(
             success=True,
             output_path=zip_path,
             original_size=original_size,
-            converted_size=total_size,
-            message=f"PDF 페이지 분할 완료 ({num_parts}개 파일, ZIP 다운로드)",
+            converted_size=max_part_size,   # 가장 큰 파트 크기 → Notion 업로드 가능 여부 직접 반영
+            message=f"PDF 페이지 분할 완료 ({len(parts)}개 파일 ZIP · 최대 파트 {max_part_size / 1024 / 1024:.2f}MB)",
             attempts=attempts,
         )
 
-    def _split_and_zip(
-        self, compressed_pdf: Path, output_dir: Path, stem: str, target: int
-    ) -> tuple[Path, int, int]:
-        """페이지 분할 → 각 청크 재압축 → ZIP 반환. (zip_path, 파일수, 총 크기) 반환."""
-        tmp_dir = output_dir / f"_split_{uuid.uuid4().hex[:8]}"
-        tmp_dir.mkdir(parents=True, exist_ok=True)
+    def _split_until_fit(
+        self, source: Path, tmp_dir: Path, stem: str, target: int
+    ) -> tuple[list[Path], int]:
+        """모든 파트가 target 이하가 될 때까지 이진 분할."""
+        result: list[Path] = []
+        attempts = 0
+        # 큐: (파일경로, 파트 식별자)
+        queue: list[tuple[Path, str]] = [(source, stem)]
 
-        try:
-            with pikepdf.open(compressed_pdf) as pdf:
-                total_pages = len(pdf.pages)
-                file_size = compressed_pdf.stat().st_size
+        while queue:
+            part_path, part_stem = queue.pop(0)
 
-                # 필요한 청크 수: 압축된 크기 기준으로 올림 계산 (안전 마진 20%)
-                num_chunks = math.ceil(file_size / (target * 0.8))
-                pages_per_chunk = math.ceil(total_pages / num_chunks)
+            if part_path.stat().st_size <= target:
+                result.append(part_path)
+                continue
 
-                chunk_paths: list[Path] = []
-                for i in range(num_chunks):
-                    start = i * pages_per_chunk
-                    end = min(start + pages_per_chunk, total_pages)
+            with pikepdf.open(part_path) as pdf:
+                n_pages = len(pdf.pages)
 
-                    raw_chunk = tmp_dir / f"{stem}_part{i + 1:02d}_raw.pdf"
-                    with pikepdf.new() as chunk_pdf:
-                        chunk_pdf.pages.extend(pdf.pages[start:end])
-                        chunk_pdf.save(raw_chunk)
+            if n_pages <= 1:
+                # 단일 페이지인데 5MB 초과 → 어쩔 수 없이 그대로 포함
+                result.append(part_path)
+                continue
 
-                    # 각 청크를 Ghostscript screen으로 재압축
-                    compressed_chunk = tmp_dir / f"{stem}_part{i + 1:02d}.pdf"
-                    self._compress_gs(raw_chunk, compressed_chunk, "screen")
-                    raw_chunk.unlink()
-                    chunk_paths.append(compressed_chunk)
+            # 절반씩 분할
+            mid = n_pages // 2
+            for i, (start, end) in enumerate([(0, mid), (mid, n_pages)]):
+                child_stem = f"{part_stem}_{i}"
+                raw = tmp_dir / f"{child_stem}_raw.pdf"
+                compressed = tmp_dir / f"{child_stem}.pdf"
 
-            # ZIP 묶기
-            zip_path = output_dir / f"{stem}_{uuid.uuid4().hex[:8]}.zip"
-            total_size = 0
-            with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zf:
-                for chunk in chunk_paths:
-                    zf.write(chunk, chunk.name)
-                    total_size += chunk.stat().st_size
+                with pikepdf.open(part_path) as pdf:
+                    with pikepdf.new() as out:
+                        out.pages.extend(pdf.pages[start:end])
+                        out.save(raw)
 
-            return zip_path, len(chunk_paths), total_size
+                self._compress_gs(raw, compressed, "screen")
+                raw.unlink()
+                attempts += 1
+                queue.append((compressed, child_stem))
 
-        finally:
-            shutil.rmtree(tmp_dir, ignore_errors=True)
+        return result, attempts
 
     def _compress_gs(self, input_path: Path, output_path: Path, setting: str) -> None:
         subprocess.run(
