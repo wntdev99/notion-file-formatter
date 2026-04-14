@@ -5,8 +5,7 @@ from fastapi.responses import FileResponse
 
 from backend.api.schemas import StatusResponse, UploadResponse
 from backend.storage.file_storage import file_storage
-from backend.worker.tasks import convert_file
-from celery.result import AsyncResult
+from backend.worker.tasks import celery_app, convert_file
 from core.models import JobStatus
 
 router = APIRouter()
@@ -36,7 +35,7 @@ async def upload_file(file: UploadFile = File(...)):
 @router.get("/status/{job_id}", response_model=StatusResponse)
 def get_status(job_id: str):
     """변환 작업 상태 조회."""
-    result = AsyncResult(job_id)
+    result = celery_app.AsyncResult(job_id)
 
     if result.state == "PENDING":
         return StatusResponse(
@@ -78,7 +77,7 @@ def get_status(job_id: str):
 @router.get("/download/{job_id}")
 def download_file(job_id: str):
     """변환된 파일 다운로드."""
-    result = AsyncResult(job_id)
+    result = celery_app.AsyncResult(job_id)
 
     if result.state != "SUCCESS":
         raise HTTPException(status_code=404, detail="변환이 완료되지 않았습니다.")

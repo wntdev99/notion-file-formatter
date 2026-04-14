@@ -33,13 +33,16 @@ class VideoConverter(AbstractConverter):
         )
         original_height = int(video_stream["height"]) if video_stream else 1080
 
+        # 원본 이하 해상도만 필터링. 목록에 없는 해상도(예: 300p)는 원본 그대로 추가
+        candidate_res = sorted(
+            {r for r in settings.VIDEO_RESOLUTIONS if r <= original_height} | {original_height},
+            reverse=True,
+        )
+
         attempts = 0
 
         for crf in range(settings.VIDEO_CRF_START, settings.VIDEO_CRF_MAX + 1, settings.VIDEO_CRF_STEP):
-            for res in settings.VIDEO_RESOLUTIONS:
-                if res > original_height:
-                    continue
-
+            for res in candidate_res:
                 self._encode(request.input_path, output_path, crf, res)
                 attempts += 1
                 converted_size = output_path.stat().st_size

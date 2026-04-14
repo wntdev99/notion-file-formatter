@@ -1,11 +1,14 @@
+import shutil
+import subprocess
 import uuid
 from pathlib import Path
-
-import pikepdf
 
 from config import settings
 from core.base_converter import AbstractConverter
 from core.models import ConversionRequest, ConversionResult
+
+# Ghostscript PDF 품질 단계 (높을수록 압축률 높음)
+_GS_SETTINGS = ["printer", "ebook", "screen"]
 
 
 class PDFConverter(AbstractConverter):
@@ -21,10 +24,9 @@ class PDFConverter(AbstractConverter):
         output_path = request.output_dir / f"{stem}_{uuid.uuid4().hex[:8]}.pdf"
 
         attempts = 0
-        dpi = settings.PDF_IMAGE_DPI
 
-        while dpi >= settings.PDF_MIN_IMAGE_DPI:
-            self._compress(request.input_path, output_path, dpi)
+        for gs_setting in _GS_SETTINGS:
+            self._compress_gs(request.input_path, output_path, gs_setting)
             attempts += 1
             converted_size = output_path.stat().st_size
 
@@ -34,12 +36,9 @@ class PDFConverter(AbstractConverter):
                     output_path=output_path,
                     original_size=original_size,
                     converted_size=converted_size,
-                    message=f"PDF 압축 완료 (DPI={dpi})",
+                    message=f"PDF 압축 완료 (품질={gs_setting})",
                     attempts=attempts,
                 )
-            dpi = max(settings.PDF_MIN_IMAGE_DPI, dpi - 25)
-            if dpi == settings.PDF_MIN_IMAGE_DPI and converted_size > target:
-                break
 
         return ConversionResult(
             success=False,
@@ -50,11 +49,18 @@ class PDFConverter(AbstractConverter):
             attempts=attempts,
         )
 
-    def _compress(self, input_path: Path, output_path: Path, dpi: int) -> None:
-        with pikepdf.open(input_path) as pdf:
-            pdf.save(
-                output_path,
-                compress_streams=True,
-                object_stream_mode=pikepdf.ObjectStreamMode.generate,
-                recompress_flate=True,
-            )
+    def _compress_gs(self, input_path: Path, output_path: Path, setting: str) -> None:
+        subprocess.run(
+            [
+                "gs",
+                "-sDEVICE=pdfwrite",
+                "-dCompatibilityLevel=1.4",
+                f"-dPDFSETTINGS=/{setting}",
+                "-dNOPAUSE",
+                "-dQUIET",
+                "-dBATCH",
+                f"-sOutputFile={output_path}",
+                str(input_path),
+            ],
+            check=True,
+        )

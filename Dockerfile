@@ -3,6 +3,7 @@ FROM python:3.12-slim
 RUN apt-get update && apt-get install -y \
     ffmpeg \
     libmagic1 \
+    ghostscript \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
