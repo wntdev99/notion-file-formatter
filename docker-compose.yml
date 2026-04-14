@@ -21,7 +21,7 @@ services:
 
   worker:
     build: .
-    command: celery -A backend.worker.tasks worker --loglevel=info --concurrency=4
+    command: celery -A backend.worker.tasks worker --beat --loglevel=info --concurrency=4
     volumes:
       - .:/app
       - ./storage:/app/storage

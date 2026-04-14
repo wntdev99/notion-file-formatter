@@ -1,4 +1,4 @@
-import json
+from datetime import timedelta
 from pathlib import Path
 
 from celery import Celery
@@ -17,6 +17,17 @@ celery_app.conf.update(
     result_serializer="json",
     accept_content=["json"],
     result_expires=settings.JOB_EXPIRE_SECONDS,
+    # 변환 작업 타임아웃: 소프트 10분, 하드 12분
+    task_soft_time_limit=600,
+    task_time_limit=720,
+    # 만료 파일 주기적 정리 (1시간마다)
+    beat_schedule={
+        "cleanup-expired-files": {
+            "task": "cleanup_expired_files",
+            "schedule": timedelta(hours=1),
+        }
+    },
+    broker_connection_retry_on_startup=True,
 )
 
 # 컨버터 등록 (새 타입 추가 시 여기에 한 줄 추가)
@@ -26,6 +37,14 @@ _registry.register(PDFConverter())
 _registry.register(VideoConverter())
 
 _pipeline = ConversionPipeline(_registry)
+
+
+@celery_app.task(name="cleanup_expired_files")
+def cleanup_expired_files() -> dict:
+    """만료된 임시 파일을 주기적으로 삭제 (Celery beat 호출)."""
+    from backend.storage.file_storage import file_storage
+    count = file_storage.cleanup_expired()
+    return {"deleted": count}
 
 
 @celery_app.task(bind=True, name="convert_file")

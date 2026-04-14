@@ -16,6 +16,8 @@ const resetBtn     = document.getElementById("resetBtn");
 const errorBox     = document.getElementById("errorBox");
 
 let pollingTimer = null;
+let pollErrorCount = 0;
+const POLL_MAX_ERRORS = 5;  // 연속 5회 실패까지 재시도
 
 // --- 드래그 앤 드롭 ---
 dropZone.addEventListener("dragover", e => { e.preventDefault(); dropZone.classList.add("drag-over"); });
@@ -43,7 +45,10 @@ async function startUpload(file) {
   let jobId;
   try {
     const res = await fetch(`${API}/api/upload`, { method: "POST", body: formData });
-    if (!res.ok) throw new Error((await res.json()).detail || "업로드 실패");
+    if (!res.ok) {
+      const detail = await parseErrorDetail(res);
+      throw new Error(detail);
+    }
     const data = await res.json();
     jobId = data.job_id;
   } catch (err) {
@@ -54,19 +59,35 @@ async function startUpload(file) {
   pollStatus(jobId);
 }
 
+// HTTP 오류 응답에서 detail 메시지 추출 (JSON 파싱 실패 방어)
+async function parseErrorDetail(res) {
+  try {
+    const body = await res.json();
+    return body.detail || `서버 오류 (${res.status})`;
+  } catch {
+    return `서버 오류 (${res.status})`;
+  }
+}
+
 // --- 상태 폴링 ---
 function pollStatus(jobId) {
   setProgress(10, "변환 작업 대기 중...");
+  pollErrorCount = 0;
 
   pollingTimer = setInterval(async () => {
     try {
       const res = await fetch(`${API}/api/status/${jobId}`);
-      if (!res.ok) throw new Error("상태 조회 실패");
+      if (!res.ok) throw new Error(await parseErrorDetail(res));
       const data = await res.json();
+      pollErrorCount = 0;  // 성공 시 오류 카운트 초기화
       handleStatus(data, jobId);
     } catch (err) {
-      clearInterval(pollingTimer);
-      showError(err.message);
+      pollErrorCount++;
+      if (pollErrorCount >= POLL_MAX_ERRORS) {
+        clearInterval(pollingTimer);
+        showError(`네트워크 오류로 상태를 확인할 수 없습니다. (${err.message})`);
+      }
+      // 일시적 오류는 다음 폴링에서 재시도
     }
   }, 1500);
 }
@@ -134,6 +155,7 @@ function showError(msg) {
 
 function reset() {
   clearInterval(pollingTimer);
+  pollErrorCount = 0;
   uploadSection.classList.remove("hidden");
   statusSection.classList.add("hidden");
   fileInput.value = "";

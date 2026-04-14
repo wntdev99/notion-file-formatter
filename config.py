@@ -6,6 +6,9 @@ class Settings(BaseSettings):
     # 파일 크기 제한 (Notion 5MB)
     TARGET_SIZE_BYTES: int = 5 * 1024 * 1024
 
+    # 업로드 허용 최대 파일 크기 (2GB)
+    MAX_UPLOAD_BYTES: int = 2 * 1024 * 1024 * 1024
+
     # 파일 저장 경로
     UPLOAD_DIR: Path = Path("storage/uploads")
     OUTPUT_DIR: Path = Path("storage/outputs")

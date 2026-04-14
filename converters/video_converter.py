@@ -26,12 +26,21 @@ class VideoConverter(AbstractConverter):
         stem = Path(request.original_filename).stem
         output_path = request.output_dir / f"{stem}_{uuid.uuid4().hex[:8]}.mp4"
 
-        # 원본 비디오 정보 조회
-        probe = ffmpeg.probe(str(request.input_path))
-        video_stream = next(
-            (s for s in probe["streams"] if s["codec_type"] == "video"), None
-        )
-        original_height = int(video_stream["height"]) if video_stream else 1080
+        # 원본 비디오 정보 조회 (손상 파일 방어)
+        try:
+            probe = ffmpeg.probe(str(request.input_path))
+            video_stream = next(
+                (s for s in probe["streams"] if s["codec_type"] == "video"), None
+            )
+            original_height = int(video_stream["height"]) if video_stream else 1080
+        except ffmpeg.Error as e:
+            return ConversionResult(
+                success=False,
+                output_path=None,
+                original_size=original_size,
+                converted_size=0,
+                message=f"비디오 파일을 읽을 수 없습니다: {e.stderr.decode(errors='ignore') if e.stderr else str(e)}",
+            )
 
         # 원본 이하 해상도만 필터링. 목록에 없는 해상도(예: 300p)는 원본 그대로 추가
         candidate_res = sorted(
@@ -43,7 +52,16 @@ class VideoConverter(AbstractConverter):
 
         for crf in range(settings.VIDEO_CRF_START, settings.VIDEO_CRF_MAX + 1, settings.VIDEO_CRF_STEP):
             for res in candidate_res:
-                self._encode(request.input_path, output_path, crf, res)
+                try:
+                    self._encode(request.input_path, output_path, crf, res)
+                except ffmpeg.Error as e:
+                    return ConversionResult(
+                        success=False,
+                        output_path=None,
+                        original_size=original_size,
+                        converted_size=0,
+                        message=f"인코딩 실패: {e.stderr.decode(errors='ignore') if e.stderr else str(e)}",
+                    )
                 attempts += 1
                 converted_size = output_path.stat().st_size
 
