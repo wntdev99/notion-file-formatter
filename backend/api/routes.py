@@ -90,8 +90,9 @@ def download_file(job_id: str):
     if not output_path.exists():
         raise HTTPException(status_code=404, detail="변환 파일이 만료되었습니다.")
 
+    media_type = "application/zip" if output_path.suffix == ".zip" else "application/octet-stream"
     return FileResponse(
         path=output_path,
         filename=output_path.name,
-        media_type="application/octet-stream",
+        media_type=media_type,
     )
