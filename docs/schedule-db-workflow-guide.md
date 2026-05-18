@@ -3,7 +3,7 @@
 > **이 파일이 단일 진실 출처(SoT)다.** Schedule DB 워크플로우와 관련된 모든 결정·작업은 이 문서를 기준으로 한다. Notion 페이지(<https://www.notion.so/364d8a0a7b5a81eeb4fbf6d96dfc1a6b>)는 더 이상 참조하지 않는다 — 보존용 사본일 뿐이며 본 로컬 파일의 내용이 우선한다.
 >
 > 변경이 필요하면 이 파일을 먼저 수정·커밋한다.
-> 마지막 동기화 기준일: 2026-05-18
+> 마지막 동기화 기준일: 2026-05-18 (PoC Softbank 마스터 리스트 재구성 반영)
 
 이 문서는 에이전트(또는 사람이) **Sub Project**를 받아서 그에 속하는 **Schedule DB 항목들**을 생성·작성할 때 따라야 할 절차와 규칙을 정의한다. 처음 보는 에이전트도 이 문서만으로 동일한 결과를 낼 수 있어야 한다.
 
@@ -227,6 +227,7 @@ Daily 기록을 읽고 다음 기준으로 묶는다 (우선순위 순):
 - 2026-05-18 — §5-1 확장: 와트 Task DB / Monthly DB를 보조 데이터 소스로 정의, 속성 매핑 표와 PoC Softbank 적용 케이스 명시.
 - 2026-05-18 — §9 신설: PoC Softbank 첫 항목(`[Navigation] tune teb_local_planner for narrow path`) 작성 과정에서 발견한 8가지 주의사항 추가.
 - 2026-05-18 — §9-9 신설: Sub Project 미연결 task 처리 정책 정의 (Recovery / 스테이션 R&D / mW / JamesW1.3 유지보수 등 PoC Softbank 외부 작업 처리 케이스 반영).
+- 2026-05-18 — §9-4 수치 갱신: PoC Softbank 마스터 리스트 재구성 결과 최종 Schedule 항목 30개(B 25 + C 5)로 확정. 초안 추정치 "약 38개"는 과대 추정이었음. Station 모듈 D435/IMX378 테스트(2024-08-02~07), IRED 센서·컨베이어 제어 로직 조정(2024-08-22~23) 2개 항목을 신규 등록하면서 갱신.
 
 ---
 
@@ -258,7 +259,7 @@ PoC Softbank Sub Project의 첫 Schedule 항목([`[Navigation] tune teb_local_pl
 ### 9-4. 회고 6개 = 시드, 실제 작업 수는 더 많다
 
 - Sub Project 본문 `### 무엇을 했는가?` 회고 bullet은 핵심 작업의 시드일 뿐, 전수가 아니다.
-- PoC Softbank 사례: 회고 6개 < 메인 Task DB row 약 26개 < 최종 Schedule 항목 약 38개.
+- PoC Softbank 사례: 회고 6개 < 메인 Task DB row 약 26개 < 최종 Schedule 항목 **30개** (2026-05-18 재구성 결과, B 25 + C 5 — 초안 단계 추정치 "약 38개"보다 보수적으로 정리됨).
 - 회고 일부(Pose Saver, 이미지 수집, 법선 벡터, Cliff Detector)는 메인 Task DB에 별도 row가 없고 inline DB·외부 페이지에만 존재한다.
 - Monthly DB 일별 column에만 등장하는 작업(예: 카드 태깅, 층 정보 생성, Auto Initial Pose, 리프트 수리, 판교·야마토·코엑스 시연, JamesW IRED/컨베이어/음성/도킹, 데모 환경 세팅 잡무)도 별도 Schedule 항목으로 잡아야 한다.
 
