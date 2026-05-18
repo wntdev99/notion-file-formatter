@@ -1,7 +1,9 @@
 # Schedule DB 작성 워크플로우 가이드
 
-> Notion 원본: <https://www.notion.so/364d8a0a7b5a81eeb4fbf6d96dfc1a6b>
-> 로컬 사본 동기화 기준일: 2026-05-18
+> **이 파일이 단일 진실 출처(SoT)다.** Schedule DB 워크플로우와 관련된 모든 결정·작업은 이 문서를 기준으로 한다. Notion 페이지(<https://www.notion.so/364d8a0a7b5a81eeb4fbf6d96dfc1a6b>)는 더 이상 참조하지 않는다 — 보존용 사본일 뿐이며 본 로컬 파일의 내용이 우선한다.
+>
+> 변경이 필요하면 이 파일을 먼저 수정·커밋한다.
+> 마지막 동기화 기준일: 2026-05-18
 
 이 문서는 에이전트(또는 사람이) **Sub Project**를 받아서 그에 속하는 **Schedule DB 항목들**을 생성·작성할 때 따라야 할 절차와 규칙을 정의한다. 처음 보는 에이전트도 이 문서만으로 동일한 결과를 낼 수 있어야 한다.
 
@@ -266,7 +268,7 @@ PoC Softbank Sub Project의 첫 Schedule 항목([`[Navigation] tune teb_local_pl
 - PoC Softbank 적용 결정 예시:
   - ChatGPT 관련 6 row → 1개 통합 (`[Research] ChatGPT 한·일 OCR/번역 통합 검증`)
   - 학습 2 row (`Understanding James Code` + `Understanding Station Code`) → 1개 통합
-  - RGBD 카메라 2 row (`Test Depth Camera SEN0579` + `RGBD A075V`) → 1개 통합 (`[Research] evaluate alternative RGBD cameras`)
+  - RGBD 카메라 2 row (`Test Depth Camera SEN0579` + `RGBD A075V`) → 1개 통합 (`[Hardware] RGBD 카메라 비교 테스트`)
   - `Develop modules in James & Station` → 메타 task로 유지하고 JamesW 4개(IRED/컨베이어/음성/도킹) + 스테이션 리팩토링을 그 하위로
 - 묶을 후보 식별 시 항상 사용자에게 옵션과 함께 질문.
 
